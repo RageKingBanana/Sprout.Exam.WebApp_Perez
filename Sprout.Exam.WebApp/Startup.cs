@@ -5,12 +5,14 @@ using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI;
 using Microsoft.AspNetCore.SpaServices.ReactDevelopmentServer;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Sprout.Exam.WebApp.Data;
 using Sprout.Exam.WebApp.Models;
+using Sprout.Exam.WebApp.Services;
 
 namespace Sprout.Exam.WebApp
 {
@@ -29,6 +31,7 @@ namespace Sprout.Exam.WebApp
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(
                     Configuration.GetConnectionString("DefaultConnection")));
+            services.AddScoped<IEmployeeService, EmployeeService>();
 
 
             services.AddDatabaseDeveloperPageExceptionFilter();
@@ -50,6 +53,12 @@ namespace Sprout.Exam.WebApp
             {
                 configuration.RootPath = "ClientApp/build";
             });
+
+            //services.AddSingleton<EmployeeService>(provider =>
+            //{
+            //    var connectionString = Configuration.GetConnectionString("DefaultConnection");
+            //    return new EmployeeService(connectionString);
+            //});
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

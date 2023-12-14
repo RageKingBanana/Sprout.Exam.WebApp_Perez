@@ -31,9 +31,14 @@ export class EmployeesIndex extends Component {
               <td>{employee.fullName}</td>
               <td>{employee.birthdate}</td>
               <td>{employee.tin}</td>
-              <td>{employee.typeId === 1?"Regular":"Contractual"}</td>
+                  <td>
+                      {console.log(employee)} {/* Log the entire employee object */}
+                      {employee.EmployeeTypeId === 1 ? "Regular" : "Contractual"}
+                  </td>
               <td>
-              <button type='button' className='btn btn-info mr-2' onClick={() => parent.props.history.push("/employees/" + employee.id + "/edit")} >Edit</button>
+                      {/*           <button type='button' className='btn btn-info mr-2' onClick={() => parent.props.history.push("/employees/" + employee.id + "/edit")} >Edit</button>*/}
+                      <button type='button' className='btn btn-info mr-2' onClick={() => parent.redirectToEdit(employee.id)}>Edit</button>
+
               <button type='button' className='btn btn-primary mr-2' onClick={() => parent.props.history.push("/employees/" + employee.id + "/calculate")}>Calculate</button>
             <button type='button' className='btn btn-danger mr-2' onClick={() => {
               if (window.confirm("Are you sure you want to delete?")) {
@@ -86,5 +91,11 @@ export class EmployeesIndex extends Component {
     else{
       alert("There was an error occured.");
     }
-  }
+    }
+
+    redirectToEdit = (employeeId) => {
+        const { history } = this.props;
+        history.push(`/employees/${employeeId}/edit`);
+    };
+
 }
