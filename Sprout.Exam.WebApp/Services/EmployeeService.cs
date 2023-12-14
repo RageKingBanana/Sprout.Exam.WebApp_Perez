@@ -38,7 +38,7 @@ namespace Sprout.Exam.WebApp.Services
                                 // Convert to a string with "yyyy-MM-dd" format and then parse
                                 Birthdate = ((DateTime)reader["Birthdate"]).Date,
 
-                            TIN = reader["TIN"].ToString(),
+                                TIN = reader["TIN"].ToString(),
                                 EmployeeTypeId = Convert.ToInt32(reader["EmployeeTypeId"]),
                                 IsDeleted = Convert.ToBoolean(reader["IsDeleted"]),
                             });

@@ -98,9 +98,9 @@ namespace Sprout.Exam.WebApp.Controllers
         }
 
         [HttpPost("{id}/calculate")]
-        public async Task<IActionResult> Calculate(int id, decimal absentDays, decimal workedDays)
+        public async Task<IActionResult> Calculate(CalculateDTO input)
         {
-            var result = await _employeeService.GetEmployeeByIdAsync(id);
+            var result = await _employeeService.GetEmployeeByIdAsync(input.Id);
             if (result == null) return NotFound();
 
             var type = (EmployeeType)result.EmployeeTypeId;
@@ -112,12 +112,12 @@ namespace Sprout.Exam.WebApp.Controllers
                 case EmployeeType.Regular:
                     var dailyRate = Math.Round(SalaryDetails.perMonthRateRegular / SalaryDetails.totalDays, SalaryDetails.decimalPlace);
                     var monthlyTaxTotal = Math.Round(SalaryDetails.perMonthRateRegular * SalaryDetails.taxpercent, SalaryDetails.decimalPlace);
-                    var absentPenalty = Math.Round(dailyRate * absentDays, SalaryDetails.decimalPlace);
+                    var absentPenalty = Math.Round(dailyRate * input.AbsentDays, SalaryDetails.decimalPlace);
                     var totalDeducted = Math.Round(monthlyTaxTotal + absentPenalty, SalaryDetails.decimalPlace);
                     totalSalary = Math.Round(SalaryDetails.perMonthRateRegular - totalDeducted, SalaryDetails.decimalPlace);
                     break;
                 case EmployeeType.Contractual:
-                    Math.Round(SalaryDetails.perMonthRateContract * workedDays, SalaryDetails.decimalPlace);
+                    totalSalary = Math.Round(SalaryDetails.perMonthRateContract * input.WorkedDays, SalaryDetails.decimalPlace);
                     break;
                 default:
                     return NotFound("Employee Type not found");
