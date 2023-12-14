@@ -8,6 +8,10 @@ using System.Collections.Generic;
 using Microsoft.Extensions.Configuration;
 using System.Globalization;
 
+/* ************************** //
+ USE OF ADO.NET IN ORDET TO CONNECT TO THE DATABASE DIRECTLY 
+Stored Procedures created for the queries (can be seen in programmability folder of database)
+*/
 namespace Sprout.Exam.WebApp.Services
 {
     public class EmployeeService : IEmployeeService
@@ -22,64 +26,84 @@ namespace Sprout.Exam.WebApp.Services
         {
             List<EmployeeDTO> employees = new List<EmployeeDTO>();
 
-            using (SqlConnection connection = new SqlConnection(_connectionString))
+            try
             {
-                await connection.OpenAsync(); // Use OpenAsync for asynchronous operation
-                using (SqlCommand command = new SqlCommand("SelectAllEmployees", connection))
+                using (SqlConnection connection = new SqlConnection(_connectionString))
                 {
-                    using (SqlDataReader reader = await command.ExecuteReaderAsync())
-                    {
-                        while (await reader.ReadAsync())
-                        {
-                            employees.Add(new EmployeeDTO
-                            {
-                                Id = Convert.ToInt32(reader["Id"]),
-                                FullName = reader["FullName"].ToString(),
-                                // Convert to a string with "yyyy-MM-dd" format and then parse
-                                Birthdate = ((DateTime)reader["Birthdate"]).Date,
+                    await connection.OpenAsync();
 
-                                TIN = reader["TIN"].ToString(),
-                                EmployeeTypeId = Convert.ToInt32(reader["EmployeeTypeId"]),
-                                IsDeleted = Convert.ToBoolean(reader["IsDeleted"]),
-                            });
+                    using (SqlCommand command = new SqlCommand("SelectAllEmployees", connection))
+                    {
+                        using (SqlDataReader reader = await command.ExecuteReaderAsync())
+                        {
+                            while (await reader.ReadAsync())
+                            {
+                                employees.Add(new EmployeeDTO
+                                {
+                                    Id = Convert.ToInt32(reader["Id"]),
+                                    FullName = reader["FullName"].ToString(),
+                                    Birthdate = ((DateTime)reader["Birthdate"]).Date,
+                                    TIN = reader["TIN"].ToString(),
+                                    EmployeeTypeId = Convert.ToInt32(reader["EmployeeTypeId"]),
+                                    IsDeleted = Convert.ToBoolean(reader["IsDeleted"]),
+                                });
+                            }
                         }
                     }
                 }
+                return employees;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"An error occurred while selecting all employees: {ex.Message}");
+                throw new Exception("Error retrieving employees", ex);
             }
 
-            return employees;
         }
+
         public async Task<EmployeeDTO> GetEmployeeByIdAsync(int id)
         {
-            using (SqlConnection connection = new SqlConnection(_connectionString))
+            try
             {
-                await connection.OpenAsync();
-
-                using (SqlCommand command = new SqlCommand("GetEmployeeById", connection))
+                using (SqlConnection connection = new SqlConnection(_connectionString))
                 {
-                    command.CommandType = CommandType.StoredProcedure;
-                    command.Parameters.AddWithValue("@EmployeeId", id);
+                    await connection.OpenAsync();
 
-                    using (SqlDataReader reader = await command.ExecuteReaderAsync())
+                    using (SqlCommand command = new SqlCommand("GetEmployeeById", connection))
                     {
-                        if (await reader.ReadAsync())
+                        command.CommandType = CommandType.StoredProcedure;
+                        command.Parameters.AddWithValue("@EmployeeId", id);
+
+                        using (SqlDataReader reader = await command.ExecuteReaderAsync())
                         {
-                            return new EmployeeDTO
+                            if (await reader.ReadAsync())
                             {
-                                Id = Convert.ToInt32(reader["Id"]),
-                                FullName = reader["FullName"].ToString(),
-                                Birthdate = Convert.ToDateTime(reader["Birthdate"]).Date,
-                                TIN = reader["TIN"].ToString(),
-                                EmployeeTypeId = Convert.ToInt32(reader["EmployeeTypeId"]),
-                                IsDeleted = Convert.ToBoolean(reader["IsDeleted"]),
-                            };
+                                return new EmployeeDTO
+                                {
+                                    Id = Convert.ToInt32(reader["Id"]),
+                                    FullName = reader["FullName"].ToString(),
+                                    Birthdate = Convert.ToDateTime(reader["Birthdate"]).Date,
+                                    TIN = reader["TIN"].ToString(),
+                                    EmployeeTypeId = Convert.ToInt32(reader["EmployeeTypeId"]),
+                                    IsDeleted = Convert.ToBoolean(reader["IsDeleted"]),
+                                };
+                            }
+                            else
+                            {
+                                // Employee not found
+                                return null;
+                            }
                         }
                     }
                 }
             }
-
-            return null; // Employee not found
+            catch (Exception ex)
+            {
+                Console.WriteLine($"An error occurred while getting an employee by ID: {ex.Message}");
+                throw new Exception("Error retrieving employees", ex);
+            }
         }
+
 
         public async Task<EmployeeDTO> UpdateEmployeeAsync(EditEmployeeDto input)
         {

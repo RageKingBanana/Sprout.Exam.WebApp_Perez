@@ -49,9 +49,6 @@ namespace Sprout.Exam.WebApp.Controllers
         }
 
 
-
-
-
         [HttpPut("{id}")]
         public async Task<IActionResult> Put(EditEmployeeDto input)
         {
@@ -100,33 +97,40 @@ namespace Sprout.Exam.WebApp.Controllers
         [HttpPost("{id}/calculate")]
         public async Task<IActionResult> Calculate(CalculateDTO input)
         {
-            var result = await _employeeService.GetEmployeeByIdAsync(input.Id);
-            if (result == null) return NotFound();
-
-            var type = (EmployeeType)result.EmployeeTypeId;
-
-            decimal totalSalary = 0m;
-            // Assign basic salary and tax rate based on employee type
-            switch (type)
+            try
             {
-                case EmployeeType.Regular:
-                    var dailyRate = Math.Round(SalaryDetails.perMonthRateRegular / SalaryDetails.totalDays, SalaryDetails.decimalPlace);
-                    var monthlyTaxTotal = Math.Round(SalaryDetails.perMonthRateRegular * SalaryDetails.taxpercent, SalaryDetails.decimalPlace);
-                    var absentPenalty = Math.Round(dailyRate * input.AbsentDays, SalaryDetails.decimalPlace);
-                    var totalDeducted = Math.Round(monthlyTaxTotal + absentPenalty, SalaryDetails.decimalPlace);
-                    totalSalary = Math.Round(SalaryDetails.perMonthRateRegular - totalDeducted, SalaryDetails.decimalPlace);
-                    break;
-                case EmployeeType.Contractual:
-                    totalSalary = Math.Round(SalaryDetails.perMonthRateContract * input.WorkedDays, SalaryDetails.decimalPlace);
-                    break;
-                default:
-                    return NotFound("Employee Type not found");
+                var result = await _employeeService.GetEmployeeByIdAsync(input.Id);
+                if (result == null) return NotFound();
+
+                var type = (EmployeeType)result.EmployeeTypeId;
+
+                decimal totalSalary = 0m;
+                // Assign basic salary and tax rate based on employee type
+                switch (type)
+                {
+                    case EmployeeType.Regular:
+                        var dailyRate = Math.Round(SalaryDetails.perMonthRateRegular / SalaryDetails.totalDays, SalaryDetails.decimalPlace);
+                        var monthlyTaxTotal = Math.Round(SalaryDetails.perMonthRateRegular * SalaryDetails.taxpercent, SalaryDetails.decimalPlace);
+                        var absentPenalty = Math.Round(dailyRate * input.AbsentDays, SalaryDetails.decimalPlace);
+                        var totalDeducted = Math.Round(monthlyTaxTotal + absentPenalty, SalaryDetails.decimalPlace);
+                        totalSalary = Math.Round(SalaryDetails.perMonthRateRegular - totalDeducted, SalaryDetails.decimalPlace);
+                        break;
+                    case EmployeeType.Contractual:
+                        totalSalary = Math.Round(SalaryDetails.perMonthRateContract * input.WorkedDays, SalaryDetails.decimalPlace);
+                        break;
+                    default:
+                        return NotFound("Employee Type not found");
+                }
+
+                return Ok(totalSalary);
             }
-
-
-
-            return Ok(totalSalary);
+            catch (Exception ex)
+            {
+                // Log the exception or handle it as needed
+                return BadRequest($"Error calculating salary: {ex.Message}");
+            }
         }
+
 
 
     }

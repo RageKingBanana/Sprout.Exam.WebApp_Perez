@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import authService from '../../components/api-authorization/AuthorizeService';
-
+import { withRouter } from 'react-router-dom';
 export class EmployeeCalculate extends Component {
     static displayName = EmployeeCalculate.name;
 
@@ -101,30 +101,35 @@ export class EmployeeCalculate extends Component {
 
     async calculateSalary() {
         this.setState({ loadingCalculate: true });
-        const token = await authService.getAccessToken();
-        const requestOptions = {
-            method: 'POST',
-            headers: !token ? {} : { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', 'accept': 'application/json' },
-            body: JSON.stringify({ id: this.state.id, absentDays: this.state.absentDays, workedDays: this.state.workedDays })
-        };
-        fetch('api/employees/' + this.state.id + '/calculate', requestOptions)
-            .then(async response => {
-                const data = await response.json();
-                //Check response status
-                if (response.status === 200) {
-                    this.setState({ netIncome: data });
-                    return;
-                }
 
-                //Get error message from response
-                const errorMessage = data.title ?? data;
-                alert("Controller Error: " + errorMessage);
-            })
-            .catch(error => {
-                alert("System Error: " + error);
-            });
-        this.setState({ loadingCalculate: false });
+        try {
+            const token = await authService.getAccessToken();
+            const requestOptions = {
+                method: 'POST',
+                headers: !token ? {} : { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', 'accept': 'application/json' },
+                body: JSON.stringify({ id: this.state.id, absentDays: this.state.absentDays, workedDays: this.state.workedDays })
+            };
+
+            const response = await fetch('api/employees/' + this.state.id + '/calculate', requestOptions);
+
+            if (response.status === 200) {
+                const data = await response.json();
+                this.setState({ netIncome: data });
+            } else {
+                const errorMessage = (await response.json()).title;
+                alert("Controller Error: " + "employee " + errorMessage);
+                // Redirect to employee index
+                this.props.history.push("/employees/index");
+            }
+        } catch (error) {
+            alert("System Error: " + error);
+            // Redirect to employee index
+            this.props.history.push("/employees/index");
+        } finally {
+            this.setState({ loadingCalculate: false });
+        }
     }
+
 
 
 
@@ -132,17 +137,37 @@ export class EmployeeCalculate extends Component {
     async getEmployee(id) {
         this.setState({ loading: true, loadingCalculate: false });
         const token = await authService.getAccessToken();
-        const response = await fetch('api/employees/' + id, {
-            headers: !token ? {} : { 'Authorization': `Bearer ${token}` }
-        });
 
-        if (response.status === 200) {
-            const data = await response.json();
-            this.setState({ id: data.id, fullName: data.fullName, birthdate: data.birthdate, tin: data.tin, typeId: data.employeeTypeId, loading: false, loadingCalculate: false });
-        }
-        else {
-            alert("There was an error occured.");
+        try {
+            const response = await fetch('api/employees/' + id, {
+                headers: !token ? {} : { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (response.status === 200) {
+                const data = await response.json();
+                this.setState({ id: data.id, fullName: data.fullName, birthdate: data.birthdate, tin: data.tin, typeId: data.employeeTypeId, loading: false, loadingCalculate: false });
+            } else {
+                const errorMessage = (await response.json()).title;
+                await Swal.fire({
+                    icon: 'error',
+                    title: 'Controller Error',
+                    text: errorMessage,
+                });
+                // Redirect to employee index
+                this.props.history.push("/employees/index");
+            }
+        } catch (error) {
+            await Swal.fire({
+                icon: 'error',
+                title: 'System Error',
+                text: error.message,
+            });
+            // Redirect to employee index
+            this.props.history.push("/employees/index");
+        } finally {
             this.setState({ loading: false, loadingCalculate: false });
         }
     }
+
 }
+export default withRouter(EmployeeCalculate);

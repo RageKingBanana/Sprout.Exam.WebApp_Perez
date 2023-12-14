@@ -31,8 +31,9 @@ namespace Sprout.Exam.WebApp
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(
                     Configuration.GetConnectionString("DefaultConnection")));
+            //added for integration of ADO.NET
             services.AddScoped<IEmployeeService, EmployeeService>();
-
+            //
 
             services.AddDatabaseDeveloperPageExceptionFilter();
 
