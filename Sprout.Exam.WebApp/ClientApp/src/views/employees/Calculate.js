@@ -1,6 +1,10 @@
 import React, { Component } from 'react';
 import authService from '../../components/api-authorization/AuthorizeService';
 import { withRouter } from 'react-router-dom';
+import Swal from 'sweetalert2';
+import { faSave, faBackward } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+
 export class EmployeeCalculate extends Component {
     static displayName = EmployeeCalculate.name;
 
@@ -14,90 +18,150 @@ export class EmployeeCalculate extends Component {
     }
     handleChange(event) {
         const { name, value } = event.target;
+
         // Convert the value to a decimal
         const decimalValue = parseFloat(value);
-        this.setState({ [name]: decimalValue });
+
+        // Validate the input to ensure it's a non-negative number and does not exceed 22
+        if (!isNaN(decimalValue) && decimalValue >= 0 && decimalValue <= 22) {
+            this.setState({ [name]: decimalValue });
+        } else {
+            // Use SweetAlert for error message
+            Swal.fire({
+                icon: 'error',
+                title: 'Invalid Input',
+                text: 'Please enter a non-negative number not exceeding 22.(There are only 22 work days in a month)',
+                confirmButtonText: 'OK',
+            });
+        }
     }
 
 
-    handleSubmit(e) {
+
+    async handleSubmit(e) {
         e.preventDefault();
+
+        // Check if absentDays or workedDays is not entered
+        if (isNaN(this.state.absentDays) || isNaN(this.state.workedDays)) {
+            await Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Please enter the number of days.',
+                confirmButtonText: 'OK',
+            });
+            return;
+        }
+
         this.calculateSalary(this.state.absentDays, this.state.workedDays);
     }
 
     render() {
-
-        let contents = this.state.loading
-            ? <p><em>Loading...</em></p>
-            : <div>
-                <form>
-                    <div className='form-row'>
-                        <div className='form-group col-md-12'>
-                            <label>Full Name: <b>{this.state.fullName}</b></label>
-                        </div>
-
-                    </div>
-
-                    <div className='form-row'>
-                        <div className='form-group col-md-12'>
-                            <label>Birthdate: <b>{this.state.birthdate.substring(0, 10)}</b></label>
-                        </div>
-                    </div>
-
-                    <div className="form-row">
-                        <div className='form-group col-md-12'>
-                            <label>TIN: <b>{this.state.tin}</b></label>
-                        </div>
-                    </div>
-
-                    <div className="form-row">
-                        <div className='form-group col-md-12'>
-                            <label>Employee Type: <b>{this.state.typeId === 1 ? "Regular" : "Contractual"}</b></label>
-                        </div>
-                    </div>
-
-                    {this.state.typeId === 1 ?
-                        <div className="form-row">
-                            <div className='form-group col-md-12'><label>Salary: 20000 </label></div>
-                            <div className='form-group col-md-12'><label>Tax: 12% </label></div>
-                        </div> : <div className="form-row">
-                            <div className='form-group col-md-12'><label>Rate Per Day: 500 </label></div>
-                        </div>}
-
-                    <div className="form-row">
-
-                        {this.state.typeId === 1 ?
-                            <div className='form-group col-md-6'>
-                                <label htmlFor='inputAbsentDays4'>Absent Days: </label>
-                                <input type='number' step='any' className='form-control' id='inputAbsentDays4' onChange={this.handleChange.bind(this)} value={this.state.absentDays} name="absentDays" placeholder='Absent Days' />
-                            </div> :
-                            <div className='form-group col-md-6'>
-                                <label htmlFor='inputWorkDays4'>Worked Days: </label>
-                                <input type='number' step='any' className='form-control' id='inputWorkDays4' onChange={this.handleChange.bind(this)} value={this.state.workedDays} name="workedDays" placeholder='Worked Days' />
-                            </div>
-                        }
-                    </div>
-
-                    <div className="form-row">
-                        <div className='form-group col-md-12'>
-                            <label>Net Income: <b>{this.state.netIncome}</b></label>
-                        </div>
-                    </div>
-
-                    <button type="submit" onClick={this.handleSubmit.bind(this)} disabled={this.state.loadingCalculate} className="btn btn-primary mr-2">{this.state.loadingCalculate ? "Loading..." : "Calculate"}</button>
-                    <button type="button" onClick={() => this.props.history.push("/employees/index")} className="btn btn-primary">Back</button>
-                </form>
-            </div>;
-
+        const { fullName, birthdate, tin, typeId, absentDays, workedDays, netIncome, loadingCalculate } = this.state;
 
         return (
             <div>
-                <h1 id="tabelLabel" >Employee Calculate Salary</h1>
+                <h1 id="tabelLabel">Employee Calculate Salary</h1>
                 <br />
-                {contents}
+                {this.state.loading ? (
+                    <p>
+                        <em>Loading...</em>
+                    </p>
+                ) : (
+                    <form>
+                        <div className="form-row">
+                            <div className="form-group col-md-12">
+                                <label>Full Name: <b>{fullName}</b></label>
+                            </div>
+                        </div>
+
+                        <div className="form-row">
+                            <div className="form-group col-md-12">
+                                <label>Birthdate: <b>{birthdate.substring(0, 10)}</b></label>
+                            </div>
+                        </div>
+
+                        <div className="form-row">
+                            <div className="form-group col-md-12">
+                                <label>TIN: <b>{tin}</b></label>
+                            </div>
+                        </div>
+
+                        <div className="form-row">
+                            <div className="form-group col-md-12">
+                                <label>Employee Type: <b>{typeId === 1 ? "Regular" : "Contractual"}</b></label>
+                            </div>
+                        </div>
+
+                        {typeId === 1 ? (
+                            <>
+                                <div className="form-row">
+                                    <div className="form-group col-md-12">
+                                        <label>Salary: $20,000</label>
+                                    </div>
+                                    <div className="form-group col-md-12">
+                                        <label>Tax: 12%</label>
+                                    </div>
+                                </div>
+                            </>
+                        ) : (
+                            <div className="form-row">
+                                <div className="form-group col-md-12">
+                                    <label>Rate Per Day: $500</label>
+                                </div>
+                            </div>
+                        )}
+
+                        <div className="form-row">
+                            {typeId === 1 ? (
+                                <div className="form-group col-md-6">
+                                    <label htmlFor="inputAbsentDays4">Absent Days: </label>
+                                    <input
+                                        type="number"
+                                        step="any"
+                                        className="form-control"
+                                        id="inputAbsentDays4"
+                                        onChange={this.handleChange.bind(this)}
+                                        value={Math.max(0, absentDays)} // Ensure non-negative number
+                                        name="absentDays"
+                                        placeholder="Absent Days"
+                                    />
+                                </div>
+                            ) : (
+                                <div className="form-group col-md-6">
+                                    <label htmlFor="inputWorkDays4">Worked Days: </label>
+                                    <input
+                                        type="number"
+                                        step="any"
+                                        className="form-control"
+                                        id="inputWorkDays4"
+                                        onChange={this.handleChange.bind(this)}
+                                        value={Math.max(0, workedDays)} // Ensure non-negative number
+                                        name="workedDays"
+                                        placeholder="Worked Days"
+                                    />
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="form-row">
+                            <div className="form-group col-md-12">
+                                <label>Net Income Per Month: <b>{netIncome}</b></label>
+                            </div>
+                        </div>
+
+                        <button type="submit" onClick={this.handleSubmit.bind(this)} disabled={this.state.loadingCalculate} className="btn btn-primary mr-2">
+                            {this.state.loadingCalculate ? "Loading..." : <FontAwesomeIcon icon={faSave} />} Calculate
+                        </button>
+                        <button type="button" onClick={() => this.props.history.push("/employees/index")} className="btn btn-primary">
+                            <FontAwesomeIcon icon={faBackward} /> Back
+                        </button>
+
+                    </form>
+                )}
             </div>
         );
     }
+
 
     async calculateSalary() {
         this.setState({ loadingCalculate: true });
@@ -115,23 +179,40 @@ export class EmployeeCalculate extends Component {
             if (response.status === 200) {
                 const data = await response.json();
                 this.setState({ netIncome: data });
+                // Your logic to check if netIncome is less than tax and display a SweetAlert
+                const taxAmount = 20000 * 0.12;
+                if (data === 0 && data < taxAmount) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Notice',
+                        text: 'Your net income is less than your tax amount! You will not receive any income!',
+                    });
+                }
             } else {
                 const errorMessage = (await response.json()).title;
-                alert("Controller Error: " + "employee " + errorMessage);
+                // Use SweetAlert for error message
+                await Swal.fire({
+                    icon: 'error',
+                    title: 'Controller Error',
+                    text: 'Employee ' + errorMessage,
+                });
                 // Redirect to employee index
                 this.props.history.push("/employees/index");
             }
         } catch (error) {
-            alert("System Error: " + error);
+            console.error("Error calculating salary:", error);
+            // Use SweetAlert for error message
+            await Swal.fire({
+                icon: 'error',
+                title: 'System Error',
+                text: 'An unexpected error occurred while calculating the salary.',
+            });
             // Redirect to employee index
             this.props.history.push("/employees/index");
         } finally {
             this.setState({ loadingCalculate: false });
         }
     }
-
-
-
 
 
     async getEmployee(id) {
@@ -151,7 +232,7 @@ export class EmployeeCalculate extends Component {
                 await Swal.fire({
                     icon: 'error',
                     title: 'Controller Error',
-                    text: errorMessage,
+                    text: 'Employee ' + errorMessage,
                 });
                 // Redirect to employee index
                 this.props.history.push("/employees/index");

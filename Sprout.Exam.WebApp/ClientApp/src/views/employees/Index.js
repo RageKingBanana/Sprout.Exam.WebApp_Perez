@@ -1,6 +1,12 @@
 import React, { Component } from 'react';
 import authService from '../../components/api-authorization/AuthorizeService';
+import Swal from 'sweetalert2';
+import { library } from '@fortawesome/fontawesome-svg-core';
+import { faEdit, faCalculator, faTrashAlt, faPlus } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { withRouter } from 'react-router-dom';
 
+library.add(faEdit, faCalculator, faTrashAlt, faPlus);
 export class EmployeesIndex extends Component {
     static displayName = EmployeesIndex.name;
 
@@ -12,11 +18,10 @@ export class EmployeesIndex extends Component {
     componentDidMount() {
         this.populateEmployeeData();
     }
-
     static renderEmployeesTable(employees, parent) {
         return (
-            <table className='table table-striped' aria-labelledby="tabelLabel">
-                <thead>
+            <table className='table table-striped table-bordered' aria-labelledby="tabelLabel">
+                <thead className='thead-dark'>
                     <tr>
                         <th>Full Name</th>
                         <th>Birthdate</th>
@@ -30,22 +35,23 @@ export class EmployeesIndex extends Component {
                         <tr key={employee.id}>
                             <td>{employee.fullName}</td>
                             <td>{new Date(employee.birthdate).toLocaleDateString()}</td>
-
                             <td>{employee.tin}</td>
+                            <td>{employee.employeeTypeId === 1 ? "Regular" : "Contractual"}</td>
                             <td>
-                                {console.log(employee)} {/* Log the entire employee object */}
-                                {employee.employeeTypeId === 1 ? "Regular" : "Contractual"}
-                            </td>
-                            <td>
-                                {/*           <button type='button' className='btn btn-info mr-2' onClick={() => parent.props.history.push("/employees/" + employee.id + "/edit")} >Edit</button>*/}
-                                <button type='button' className='btn btn-info mr-2' onClick={() => parent.redirectToEdit(employee.id)}>Edit</button>
-
-                                <button type='button' className='btn btn-primary mr-2' onClick={() => parent.props.history.push("/employees/" + employee.id + "/calculate")}>Calculate</button>
-                                <button type='button' className='btn btn-danger mr-2' onClick={() => {
+                                <button type='button' className='btn btn-info mr-2' onClick={() => parent.redirectToEdit(employee.id)}>
+                                    <FontAwesomeIcon icon="edit" /> Edit
+                                </button>
+                                <button type='button' className='btn btn-primary mr-2' onClick={() => parent.props.history.push("/employees/" + employee.id + "/calculate")}>
+                                    <FontAwesomeIcon icon="calculator" /> Calculate
+                                </button>
+                                <button type='button' className='btn btn-danger' onClick={() => {
                                     if (window.confirm("Are you sure you want to delete?")) {
                                         parent.deleteEmployee(employee.id);
                                     }
-                                }}>Delete</button></td>
+                                }}>
+                                    <FontAwesomeIcon icon="trash-alt" /> Delete
+                                </button>
+                            </td>
                         </tr>
                     )}
                 </tbody>
@@ -55,14 +61,16 @@ export class EmployeesIndex extends Component {
 
     render() {
         let contents = this.state.loading
-            ? <p><em>Loading...</em></p>
+            ? <p className="text-center"><em>Loading...</em></p>
             : EmployeesIndex.renderEmployeesTable(this.state.employees, this);
 
         return (
-            <div>
-                <h1 id="tabelLabel" >Employees</h1>
-                <p>This page should fetch data from the server.</p>
-                <p><button type='button' className='btn btn-success mr-2' onClick={() => this.props.history.push("/employees/create")} >Create</button></p>
+            <div className="container mt-4">
+                <h1 className="text-center">Employees</h1>
+                <p className="text-center">This page should fetch data from the server.</p>
+                <button type='button' className='btn btn-success mb-3' onClick={() => this.props.history.push("/employees/create")}>
+                    <FontAwesomeIcon icon="plus" /> Create
+                </button>
                 {contents}
             </div>
         );
@@ -83,16 +91,42 @@ export class EmployeesIndex extends Component {
             method: 'DELETE',
             headers: !token ? {} : { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
         };
-        const response = await fetch('api/employees/' + id, requestOptions);
-        if (response.status === 200) {
-            this.setState({
-                employees: this.state.employees.filter(function (employee) {
-                    return employee.id !== id
-                })
+
+        try {
+            const response = await fetch('api/employees/' + id, requestOptions);
+
+            if (response.status === 200) {
+                this.setState({
+                    employees: this.state.employees.filter(function (employee) {
+                        return employee.id !== id;
+                    })
+                });
+
+                // Use SweetAlert for success message
+                await Swal.fire({
+                    icon: 'success',
+                    title: 'Success',
+                    text: 'Employee successfully deleted!',
+                });
+            } else {
+                // Use SweetAlert for error message
+                await Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'There was an error occurred.',
+                });
+            }
+        } catch (error) {
+            console.error("Error deleting employee:", error);
+            // Use SweetAlert for error message
+            await Swal.fire({
+                icon: 'error',
+                title: 'System Error',
+                text: 'An unexpected error occurred while deleting the employee.',
             });
-        }
-        else {
-            alert("There was an error occured.");
+        } finally {
+            // Reload the employee data
+            await this.populateEmployeeData();
         }
     }
 
@@ -102,3 +136,5 @@ export class EmployeesIndex extends Component {
     };
 
 }
+export default withRouter(EmployeesIndex);
+

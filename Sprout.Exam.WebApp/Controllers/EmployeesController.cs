@@ -52,35 +52,80 @@ namespace Sprout.Exam.WebApp.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> Put(EditEmployeeDto input)
         {
-            var result = await _employeeService.UpdateEmployeeAsync(input);
-            if (result == null) return NotFound();
-            return Ok(result);
+            DateTime maxDate = DateTime.Now.AddYears(-60);
+            DateTime minDate = DateTime.Now.AddYears(-18);
+
+            // Assuming input.Birthdate is already a DateTime
+            DateTime birthdate = input.Birthdate;
+
+            // Check if the birthdate is within the allowed range
+            if (birthdate >= maxDate && birthdate <= minDate)
+            {
+                try
+                {
+                    var result = await _employeeService.UpdateEmployeeAsync(input);
+
+                    if (result == null)
+                    {
+                        // Employee with the given ID not found
+                        return NotFound();
+                    }
+
+                    return Ok(result);
+                }
+                catch (Exception ex)
+                {
+                    // Log the exception or handle it as needed
+                    Console.WriteLine($"An error occurred while processing the request: {ex.Message}");
+                    return StatusCode(500, "Internal Server Error");
+                }
+            }
+            else
+            {
+                // Return a 400 Bad Request status with an error message
+                return BadRequest("Invalid birthdate. Only 18-60 years old are allowed to work");
+            }
         }
 
         [HttpPost]
         public async Task<IActionResult> Post(CreateEmployeeDto input)
         {
-            try
-            {
-                string resultMessage = await _employeeService.CreateEmployeeAsync(input);
+            DateTime maxDate = DateTime.Now.AddYears(-60);
+            DateTime minDate = DateTime.Now.AddYears(-18);
 
-                // Check the result message to determine success or failure
-                if (resultMessage.StartsWith("Employee created successfully"))
+            // Assuming input.Birthdate is already a DateTime
+            DateTime birthdate = input.Birthdate;
+
+            // Check if the birthdate is within the allowed range
+            if (birthdate >= maxDate && birthdate <= minDate)
+            {
+                try
                 {
-                    // Return a 201 Created status with a success message
-                    return Created($"/api/employees/{input.Id}", resultMessage);
+                    string resultMessage = await _employeeService.CreateEmployeeAsync(input);
+
+                    // Check the result message to determine success or failure
+                    if (resultMessage.StartsWith("Employee created successfully"))
+                    {
+                        // Return a 201 Created status with a success message
+                        return Created($"/api/employees/{input.Id}", resultMessage);
+                    }
+                    else
+                    {
+                        // Return a 400 Bad Request status with the error message
+                        return BadRequest(resultMessage);
+                    }
                 }
-                else
+                catch (Exception ex)
                 {
-                    // Return a 400 Bad Request status with the error message
-                    return BadRequest(resultMessage);
+                    // Log the exception or handle it as needed
+                    Console.WriteLine($"An error occurred while processing the request: {ex.Message}");
+                    return StatusCode(500, "Internal Server Error");
                 }
             }
-            catch (Exception ex)
+            else
             {
-                // Log the exception or handle it as needed
-                Console.WriteLine($"An error occurred while processing the request: {ex.Message}");
-                return StatusCode(500, "Internal Server Error");
+                // Return a 400 Bad Request status with an error message
+                return BadRequest("Invalid birthdate. Birthdate must be between 18 and 60 years ago.");
             }
         }
 
@@ -121,7 +166,7 @@ namespace Sprout.Exam.WebApp.Controllers
                     default:
                         return NotFound("Employee Type not found");
                 }
-
+                totalSalary = Math.Max(totalSalary, 0);
                 return Ok(totalSalary);
             }
             catch (Exception ex)
