@@ -6,6 +6,7 @@ using Sprout.Exam.WebApp.Models;
 using System;
 using System.Collections.Generic;
 using Microsoft.Extensions.Configuration;
+using System.Globalization;
 
 namespace Sprout.Exam.WebApp.Services
 {
@@ -34,8 +35,10 @@ namespace Sprout.Exam.WebApp.Services
                             {
                                 Id = Convert.ToInt32(reader["Id"]),
                                 FullName = reader["FullName"].ToString(),
-                                Birthdate = Convert.ToDateTime(reader["Birthdate"]),
-                                TIN = reader["TIN"].ToString(),
+                                // Convert to a string with "yyyy-MM-dd" format and then parse
+                                Birthdate = ((DateTime)reader["Birthdate"]).Date,
+
+                            TIN = reader["TIN"].ToString(),
                                 EmployeeTypeId = Convert.ToInt32(reader["EmployeeTypeId"]),
                                 IsDeleted = Convert.ToBoolean(reader["IsDeleted"]),
                             });
@@ -65,7 +68,7 @@ namespace Sprout.Exam.WebApp.Services
                             {
                                 Id = Convert.ToInt32(reader["Id"]),
                                 FullName = reader["FullName"].ToString(),
-                                Birthdate = Convert.ToDateTime(reader["Birthdate"]),
+                                Birthdate = Convert.ToDateTime(reader["Birthdate"]).Date,
                                 TIN = reader["TIN"].ToString(),
                                 EmployeeTypeId = Convert.ToInt32(reader["EmployeeTypeId"]),
                                 IsDeleted = Convert.ToBoolean(reader["IsDeleted"]),
@@ -80,61 +83,74 @@ namespace Sprout.Exam.WebApp.Services
 
         public async Task<EmployeeDTO> UpdateEmployeeAsync(EditEmployeeDto input)
         {
-            using (SqlConnection connection = new SqlConnection(_connectionString))
+            try
             {
-                await connection.OpenAsync();
-
-                using (SqlCommand command = new SqlCommand("UpdateEmployee", connection))
+                using (SqlConnection connection = new SqlConnection(_connectionString))
                 {
-                    command.CommandType = CommandType.StoredProcedure;
-                    command.Parameters.AddWithValue("@EmployeeId", input.Id);
-                    command.Parameters.AddWithValue("@FullName", input.FullName);
-                    command.Parameters.AddWithValue("@Birthdate", input.Birthdate);
-                    command.Parameters.AddWithValue("@TIN", input.Tin);
-                    command.Parameters.AddWithValue("@EmployeeTypeId", input.TypeId);
-                    command.Parameters.AddWithValue("@IsDeleted", false); // Assuming it's not deleted during an update
+                    await connection.OpenAsync();
 
-                    await command.ExecuteNonQueryAsync();
-                }
-            }
-
-            // Fetch and return the updated employee
-            return await GetEmployeeByIdAsync(input.Id);
-        }
-
-
-        public async Task<EmployeeDTO> CreateEmployeeAsync(CreateEmployeeDto input)
-        {
-            using (SqlConnection connection = new SqlConnection(_connectionString))
-            {
-                await connection.OpenAsync();
-
-                using (SqlCommand command = new SqlCommand("CreateEmployee", connection))
-                {
-                    command.CommandType = CommandType.StoredProcedure;
-                    command.Parameters.AddWithValue("@FullName", input.FullName);
-                    command.Parameters.AddWithValue("@Birthdate", input.Birthdate);
-                    command.Parameters.AddWithValue("@TIN", input.Tin);
-                    command.Parameters.AddWithValue("@EmployeeTypeId", input.TypeId);
-                    command.Parameters.AddWithValue("@IsDeleted", false); // new create so it must be false
-
-                    // Add an output parameter to capture the newly created employee's ID
-                    SqlParameter outputParameter = new SqlParameter("@NewEmployeeId", SqlDbType.Int)
+                    using (SqlCommand command = new SqlCommand("UpdateEmployee", connection))
                     {
-                        Direction = ParameterDirection.Output
-                    };
-                    command.Parameters.Add(outputParameter);
+                        command.CommandType = CommandType.StoredProcedure;
+                        command.Parameters.AddWithValue("@EmployeeId", input.Id);
+                        command.Parameters.AddWithValue("@FullName", input.FullName);
+                        command.Parameters.AddWithValue("@Birthdate", input.Birthdate);
+                        command.Parameters.AddWithValue("@TIN", input.Tin);
+                        command.Parameters.AddWithValue("@EmployeeTypeId", input.TypeId);
 
-                    await command.ExecuteNonQueryAsync();
 
-                    // Retrieve the value of the output parameter
-                    int newEmployeeId = (int)outputParameter.Value;
-
-                    // Fetch and return the newly created employee
-                    return await GetEmployeeByIdAsync(newEmployeeId);
+                        await command.ExecuteNonQueryAsync();
+                    }
                 }
+
+                // Fetch and return the updated employee
+                return await GetEmployeeByIdAsync(input.Id);
+            }
+            catch (Exception ex)
+            {
+                // Log or handle the exception as needed
+                // You can also rethrow the exception if you want it to be caught by a higher-level handler
+                throw new Exception("Error updating employee", ex);
             }
         }
+
+
+
+        public async Task<string> CreateEmployeeAsync(CreateEmployeeDto input)
+        {
+            try
+            {
+                using (SqlConnection connection = new SqlConnection(_connectionString))
+                {
+                    await connection.OpenAsync();
+
+                    using (SqlCommand command = new SqlCommand("CreateEmployee", connection))
+                    {
+                        command.CommandType = CommandType.StoredProcedure;
+                        command.Parameters.AddWithValue("@FullName", input.FullName);
+                        command.Parameters.AddWithValue("@Birthdate", input.Birthdate);
+                        command.Parameters.AddWithValue("@TIN", input.Tin);
+                        command.Parameters.AddWithValue("@EmployeeTypeId", input.TypeId);
+                        command.Parameters.AddWithValue("@IsDeleted", false); // new create so it must be false
+
+                        // Execute the stored procedure
+                        await command.ExecuteNonQueryAsync();
+
+                        // Return a success message
+                        return "Employee created successfully!";
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log the exception or handle it as needed
+                Console.WriteLine($"An error occurred while creating an employee: {ex.Message}");
+                return $"Error creating employee: {ex.Message}";
+            }
+        }
+
+
+
 
 
         public async Task<bool> DeleteEmployeeAsync(int id)

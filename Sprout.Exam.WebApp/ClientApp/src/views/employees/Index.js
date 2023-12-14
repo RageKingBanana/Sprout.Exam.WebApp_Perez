@@ -29,11 +29,12 @@ export class EmployeesIndex extends Component {
           {employees.map(employee =>
             <tr key={employee.id}>
               <td>{employee.fullName}</td>
-              <td>{employee.birthdate}</td>
+                  <td>{new Date(employee.birthdate).toLocaleDateString()}</td>
+
               <td>{employee.tin}</td>
                   <td>
                       {console.log(employee)} {/* Log the entire employee object */}
-                      {employee.EmployeeTypeId === 1 ? "Regular" : "Contractual"}
+                      {employee.employeeTypeId === 1 ? "Regular" : "Contractual"}
                   </td>
               <td>
                       {/*           <button type='button' className='btn btn-info mr-2' onClick={() => parent.props.history.push("/employees/" + employee.id + "/edit")} >Edit</button>*/}

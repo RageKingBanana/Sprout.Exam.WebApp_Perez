@@ -39,7 +39,7 @@ export class EmployeeEdit extends Component {
                             </div>
                             <div className='form-group col-md-6'>
                                 <label htmlFor='inputBirthdate4'>Birthdate: *</label>
-                                <input type='date' className='form-control' id='inputBirthdate4' onChange={this.handleChange} name="birthdate" value={this.state.birthdate} placeholder='Birthdate' />
+                                <input type='date' className='form-control' id='inputBirthdate4' onChange={this.handleChange.bind(this)} name="birthdate" value={this.state.birthdate} placeholder='Birthdate' />
                             </div>
                         </div>
                         <div className="form-row">
@@ -96,7 +96,9 @@ export class EmployeeEdit extends Component {
         const response = await fetch(`api/employees/${id}`, {
             headers: !token ? {} : { 'Authorization': `Bearer ${token}` }
         });
+        console.log(response);
         const data = await response.json();
+
         this.setState({
             id: data.id,
             fullName: data.fullName,
