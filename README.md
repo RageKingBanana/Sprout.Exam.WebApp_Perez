@@ -11,9 +11,11 @@ ANSWERS:
 *Editable tax field in order to accomodate new possible new employee types
 
 *Inclusion of yearly computation of salary so that other factors such as 13th month pay can be considered, and a payroll system can be created.
+<<<<<<<<<<<<<<<
 
-SETUP: Make sure to restore the database included in this repository (SproutExam_PerezDB) since it has the stored procedures for the Crud
+SETUP: Make sure to restore the database included in this repository (SproutExam_PerezDB) since it has the stored procedures for the Crud 
 
+>>>>>>>>>>>>>>>
 Screenshots of some added validations and success/error messages:
 
 ![Delete Success Image](https://github.com/RageKingBanana/Sprout.Exam.WebApp_Perez/raw/main/Images/DeleteSuccess.PNG)
