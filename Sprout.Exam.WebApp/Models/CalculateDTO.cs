@@ -9,5 +9,11 @@ namespace Sprout.Exam.WebApp.Models
         public decimal AbsentDays { get; set; }
         [Required]
         public decimal WorkedDays { get; set; }
+        [Required]
+        public decimal ratePerDay { get; set; }
+        [Required]
+        public decimal salary { get; set; }
+        [Required]
+        public decimal tax { get; set; }
     }
 }

@@ -146,7 +146,7 @@ namespace Sprout.Exam.WebApp.Controllers
             {
                 var result = await _employeeService.GetEmployeeByIdAsync(input.Id);
                 if (result == null) return NotFound();
-
+                var taxPercent = input.tax / 100;
                 var type = (EmployeeType)result.EmployeeTypeId;
 
                 decimal totalSalary = 0m;
@@ -154,11 +154,18 @@ namespace Sprout.Exam.WebApp.Controllers
                 switch (type)
                 {
                     case EmployeeType.Regular:
-                        var dailyRate = Math.Round(SalaryDetails.perMonthRateRegular / SalaryDetails.totalDays, SalaryDetails.decimalPlace);
-                        var monthlyTaxTotal = Math.Round(SalaryDetails.perMonthRateRegular * SalaryDetails.taxpercent, SalaryDetails.decimalPlace);
+                        var dailyRate = Math.Round(input.salary / SalaryDetails.totalDays, SalaryDetails.decimalPlace);
+                        var monthlyTaxTotal = Math.Round(input.salary * taxPercent, SalaryDetails.decimalPlace);
                         var absentPenalty = Math.Round(dailyRate * input.AbsentDays, SalaryDetails.decimalPlace);
                         var totalDeducted = Math.Round(monthlyTaxTotal + absentPenalty, SalaryDetails.decimalPlace);
-                        totalSalary = Math.Round(SalaryDetails.perMonthRateRegular - totalDeducted, SalaryDetails.decimalPlace);
+                        totalSalary = Math.Round(input.salary - totalDeducted, SalaryDetails.decimalPlace);
+                        #region OldMethod for compute
+                        //var dailyRate = Math.Round(SalaryDetails.perMonthRateRegular / SalaryDetails.totalDays, SalaryDetails.decimalPlace);
+                        //var monthlyTaxTotal = Math.Round(SalaryDetails.perMonthRateRegular * SalaryDetails.taxpercent, SalaryDetails.decimalPlace);
+                        //var absentPenalty = Math.Round(dailyRate * input.AbsentDays, SalaryDetails.decimalPlace);
+                        //var totalDeducted = Math.Round(monthlyTaxTotal + absentPenalty, SalaryDetails.decimalPlace);
+                        //totalSalary = Math.Round(SalaryDetails.perMonthRateRegular - totalDeducted, SalaryDetails.decimalPlace);
+                        #endregion
                         break;
                     case EmployeeType.Contractual:
                         totalSalary = Math.Round(SalaryDetails.perMonthRateContract * input.WorkedDays, SalaryDetails.decimalPlace);

@@ -10,7 +10,12 @@ export class EmployeeCalculate extends Component {
 
     constructor(props) {
         super(props);
-        this.state = { id: 0, fullName: '', birthdate: '', tin: '', typeId: 1, absentDays: 0, workedDays: 0, netIncome: 0, loading: true, loadingCalculate: false };
+        this.state = {
+            id: 0, fullName: '', birthdate: '', tin: '', typeId: 1, absentDays: 0, workedDays: 0, netIncome: 0, loading: true, loadingCalculate: false,
+            salary: 20000, // Set a default value for salary
+            tax: 12, // Set a default value for tax
+            ratePerDay: 500 // Set a default value for ratePerDay
+        };
     }
 
     componentDidMount() {
@@ -36,7 +41,65 @@ export class EmployeeCalculate extends Component {
         }
     }
 
+    handleSalaryChange(event) {
+        const { value } = event.target;
 
+        // Convert the value to a decimal
+        const decimalValue = parseFloat(value);
+
+        // Validate the input to ensure it's a non-negative number and does not exceed 6 digits
+        if (!isNaN(decimalValue) && decimalValue >= 0 && decimalValue <= 999999.99) {
+            this.setState({ salary: decimalValue });
+        } else {
+            // Use SweetAlert for error message
+            Swal.fire({
+                icon: 'error',
+                title: 'Invalid Input',
+                text: 'Please enter a non-negative salary not exceeding 6 digits.',
+                confirmButtonText: 'OK',
+            });
+        }
+    }
+
+    handleTaxChange(event) {
+        const { value } = event.target;
+
+        // Convert the value to a decimal
+        const decimalValue = parseFloat(value);
+
+        // Validate the input to ensure it's a number between 1 and 100
+        if (!isNaN(decimalValue) && decimalValue >= 1 && decimalValue <= 100) {
+            this.setState({ tax: decimalValue });
+        } else {
+            // Use SweetAlert for error message
+            Swal.fire({
+                icon: 'error',
+                title: 'Invalid Input',
+                text: 'Please enter a tax value between 1 and 100.',
+                confirmButtonText: 'OK',
+            });
+        }
+    }
+
+    handleRatePerDayChange(event) {
+        const { value } = event.target;
+
+        // Convert the value to a decimal
+        const decimalValue = parseFloat(value);
+
+        // Validate the input to ensure it's a non-negative number and does not exceed 6 digits
+        if (!isNaN(decimalValue) && decimalValue >= 0 && decimalValue <= 999999.99)  {
+            this.setState({ ratePerDay: decimalValue });
+        } else {
+            // Use SweetAlert for error message
+            Swal.fire({
+                icon: 'error',
+                title: 'Invalid Input',
+                text: 'Please enter a non-negative rate per day not exceeding 6 digits.',
+                confirmButtonText: 'OK',
+            });
+        }
+    }
 
     async handleSubmit(e) {
         e.preventDefault();
@@ -92,41 +155,68 @@ export class EmployeeCalculate extends Component {
                             </div>
                         </div>
 
-                        {typeId === 1 ? (
-                            <>
+                            {typeId === 1 ? (
+                                <>
+                                    <div className="form-row">
+                                        <div className="form-group col-md-12">
+                                            <label>Salary: $
+                                                <input
+                                                    type="number"
+                                                    step="any"
+                                                    className="form-control"
+                                                    onChange={this.handleSalaryChange.bind(this)}
+                                                    value={this.state.salary}
+                                                    name="salary"
+                                                />
+                                            </label>
+                                        </div>
+                                        <div className="form-group col-md-12">
+                                            <label>Tax: %
+                                                <input
+                                                    type="number"
+                                                    step="any"
+                                                    className="form-control"
+                                                    onChange={this.handleTaxChange.bind(this)}
+                                                    value={this.state.tax}
+                                                    name="tax"
+                                                />
+                                            </label>
+                                        </div>
+                                    </div>
+                                </>
+                            ) : (
                                 <div className="form-row">
                                     <div className="form-group col-md-12">
-                                        <label>Salary: $20,000</label>
-                                    </div>
-                                    <div className="form-group col-md-12">
-                                        <label>Tax: 12%</label>
+                                        <label>Rate Per Day: $
+                                            <input
+                                                type="number"
+                                                step="any"
+                                                className="form-control"
+                                                onChange={this.handleRatePerDayChange.bind(this)}
+                                                value={this.state.ratePerDay}
+                                                name="ratePerDay"
+                                            />
+                                        </label>
                                     </div>
                                 </div>
-                            </>
-                        ) : (
-                            <div className="form-row">
-                                <div className="form-group col-md-12">
-                                    <label>Rate Per Day: $500</label>
-                                </div>
-                            </div>
-                        )}
 
-                        <div className="form-row">
-                            {typeId === 1 ? (
-                                <div className="form-group col-md-6">
-                                    <label htmlFor="inputAbsentDays4">Absent Days: </label>
-                                    <input
-                                        type="number"
-                                        step="any"
-                                        className="form-control"
-                                        id="inputAbsentDays4"
-                                        onChange={this.handleChange.bind(this)}
-                                        value={Math.max(0, absentDays)} // Ensure non-negative number
-                                        name="absentDays"
-                                        placeholder="Absent Days"
-                                    />
-                                </div>
-                            ) : (
+                            )}
+                            <div className="form-row">
+                                {typeId === 1 ? (
+                                    <div className="form-group col-md-6">
+                                        <label htmlFor="inputAbsentDays4">Absent Days: </label>
+                                        <input
+                                            type="number"
+                                            step="any"
+                                            className="form-control"
+                                            id="inputAbsentDays4"
+                                            onChange={this.handleChange.bind(this)}
+                                            value={Math.max(0, absentDays)} // Ensure non-negative number
+                                            name="absentDays"
+                                            placeholder="Absent Days"
+                                        />
+                                    </div>
+                                ) : (
                                 <div className="form-group col-md-6">
                                     <label htmlFor="inputWorkDays4">Worked Days: </label>
                                     <input
@@ -140,8 +230,10 @@ export class EmployeeCalculate extends Component {
                                         placeholder="Worked Days"
                                     />
                                 </div>
-                            )}
-                        </div>
+
+                                )}
+                            </div>
+
 
                         <div className="form-row">
                             <div className="form-group col-md-12">
@@ -171,7 +263,16 @@ export class EmployeeCalculate extends Component {
             const requestOptions = {
                 method: 'POST',
                 headers: !token ? {} : { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', 'accept': 'application/json' },
-                body: JSON.stringify({ id: this.state.id, absentDays: this.state.absentDays, workedDays: this.state.workedDays })
+                body: JSON.stringify({
+                    id: this.state.id,
+                    absentDays: this.state.absentDays,
+                    workedDays: this.state.workedDays,
+                    ratePerDay: this.state.ratePerDay,  // Add ratePerDay
+                    salary: this.state.salary,          // Add salary
+                    tax: this.state.tax                 // Add tax
+                })
+
+
             };
 
             const response = await fetch('api/employees/' + this.state.id + '/calculate', requestOptions);
