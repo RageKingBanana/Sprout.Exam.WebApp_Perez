@@ -12,6 +12,8 @@ ANSWERS:
 
 *Inclusion of yearly computation of salary so that other factors such as 13th month pay can be considered, and a payroll system can be created.
 
+Screenshots of some added validations and success/error messages:
+
 ![Delete Success Image](https://github.com/RageKingBanana/Sprout.Exam.WebApp_Perez/raw/main/Images/DeleteSuccess.PNG)
 
 ![Income and Tax Calculation Validate Image](https://github.com/RageKingBanana/Sprout.Exam.WebApp_Perez/raw/main/Images/IncomeAndTaxCalculationValidate.png)
