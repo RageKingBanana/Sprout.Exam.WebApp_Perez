@@ -14,8 +14,10 @@ ANSWERS:
 
 ***************
 
-SETUP: Make sure to restore the database included in this repository (SproutExam_PerezDB) since it has the stored procedures for the Crud 
+SETUP: Make sure to restore the database included in this repository (SproutExam_PerezDB) since it has the stored procedures for the Crud (ADO.NET WAS USED)
+
 SQL Server 16.0.1000.6 was used for the database therefore it also needs to be backedup in the same version or compatible version (will not work with 15)
+
 ***************
 
 Screenshots of some added validations and success/error messages:
