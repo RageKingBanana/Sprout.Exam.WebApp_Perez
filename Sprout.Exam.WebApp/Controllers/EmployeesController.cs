@@ -168,7 +168,7 @@ namespace Sprout.Exam.WebApp.Controllers
                         #endregion
                         break;
                     case EmployeeType.Contractual:
-                        totalSalary = Math.Round(SalaryDetails.perMonthRateContract * input.WorkedDays, SalaryDetails.decimalPlace);
+                        totalSalary = Math.Round(input.ratePerDay * input.WorkedDays, SalaryDetails.decimalPlace);
                         break;
                     default:
                         return NotFound("Employee Type not found");
